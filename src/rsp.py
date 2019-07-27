@@ -3,7 +3,7 @@ import random
 NAME_ROCK = 'rock'
 NAME_SCISSORS = 'scissors'
 NAME_PAPER = 'paper'
-ALL_VALUES = [NAME_ROCK, NAME_SCISSORS, NAME_ROCK]
+ALL_VALUES = [NAME_ROCK, NAME_SCISSORS, NAME_PAPER]
 
 
 class Game:
@@ -125,9 +125,8 @@ class ImitatingPlayer(Player):
 
     def learn(self, value):
         """
-        Sets
-        :param value:
-        :return:
+        Sets the next value to play.
+        :param value: The next value to play.
         """
         assert value in ALL_VALUES
         self.value = value
@@ -136,6 +135,29 @@ class ImitatingPlayer(Player):
         return self.value
 
 
+class CyclingMovePlayer(Player):
+    """
+    Copy of all moves, as this Player subclass mutates the list.
+    """
+    moves = ALL_VALUES.copy()
+
+    def play(self):
+        return self.next_move()
+
+    def next_move(self):
+        """
+        Cycles through the list of possible moves.
+        :return:
+        """
+        self.moves.append(self.moves.pop(0))
+        return self.moves[0]
+
+
 if __name__ == '__main__':
     print("let's play a game")
     assert NAME_ROCK is StaticMovePlayer().play()
+    cycling_player = CyclingMovePlayer()
+    print(cycling_player.play())
+    print(cycling_player.play())
+    print(cycling_player.play())
+    print(cycling_player.play())
