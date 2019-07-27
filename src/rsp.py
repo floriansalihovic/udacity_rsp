@@ -1,3 +1,11 @@
+import random
+
+
+NAME_ROCK = 'rock'
+NAME_SCISSORS = 'scissors'
+NAME_PAPER = 'paper'
+
+
 class Game:
     """
     A Game lets players compete in rounds. Each player can play a move per
@@ -13,9 +21,9 @@ class Game:
 
 class Rules:
     rules = {
-        'rock': 'scissors',
-        'scissors': 'paper',
-        'paper': 'rocks'
+        NAME_ROCK: NAME_SCISSORS,
+        NAME_SCISSORS: NAME_PAPER,
+        NAME_PAPER: NAME_ROCK
     }
 
     """
@@ -86,7 +94,7 @@ class StaticMovePlayer(Player):
     passed to the instance when created.
     """
 
-    def __init__(self, value='rock'):
+    def __init__(self, value=NAME_ROCK):
         super().__init__()
         self.value = value
 
@@ -94,6 +102,18 @@ class StaticMovePlayer(Player):
         return self.value
 
 
+class RandomMovePlayer(Player):
+    """
+    RandomMovePlayer instances randomly which choose the next move to play.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def play(self):
+        return random.choice([NAME_ROCK, NAME_SCISSORS, NAME_ROCK])
+
+
 if __name__ == '__main__':
     print("let's play a game")
-    assert 'rock' is StaticMovePlayer('rock').play()
+    assert NAME_ROCK is StaticMovePlayer().play()
