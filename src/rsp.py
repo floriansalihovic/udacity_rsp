@@ -1,9 +1,9 @@
 import random
 
-
 NAME_ROCK = 'rock'
 NAME_SCISSORS = 'scissors'
 NAME_PAPER = 'paper'
+ALL_VALUES = [NAME_ROCK, NAME_SCISSORS, NAME_ROCK]
 
 
 class Game:
@@ -29,9 +29,6 @@ class Rules:
     """
     Rules define which move beats another.
     """
-
-    def __init__(self):
-        pass
 
     def compare(self, move_1, move_2):
         """
@@ -74,7 +71,12 @@ class Player:
     A player can play one move per round.
     """
 
-    def __init__(self):
+    def learn(self, value):
+        """
+        Interface method which could be implemented optionally by subclasses.
+        :parameter value: The last played value by the opponent.
+        :type value: basestring
+        """
         pass
 
     def play(self):
@@ -107,11 +109,31 @@ class RandomMovePlayer(Player):
     RandomMovePlayer instances randomly which choose the next move to play.
     """
 
+    def play(self):
+        return random.choice(ALL_VALUES)
+
+
+class ImitatingPlayer(Player):
+    """
+    ImitatingPlayer starts with a random move and will subsequently continue
+    returning its opponent's last round's move.
+    """
+
     def __init__(self):
         super().__init__()
+        self.value = random.choice(ALL_VALUES)
+
+    def learn(self, value):
+        """
+        Sets
+        :param value:
+        :return:
+        """
+        assert value in ALL_VALUES
+        self.value = value
 
     def play(self):
-        return random.choice([NAME_ROCK, NAME_SCISSORS, NAME_ROCK])
+        return self.value
 
 
 if __name__ == '__main__':
