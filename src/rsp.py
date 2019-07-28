@@ -3,7 +3,7 @@ import random
 NAME_ROCK = 'rock'
 NAME_SCISSORS = 'scissors'
 NAME_PAPER = 'paper'
-ALL_VALUES = [NAME_ROCK, NAME_SCISSORS, NAME_PAPER]
+ALL_VALID_VALUES = [NAME_ROCK, NAME_SCISSORS, NAME_PAPER]
 
 
 class Game:
@@ -61,15 +61,72 @@ class Round:
     A round is the exchange of moves of two players. It can be won by a
     player or end in a draw, if both players chose to play the same move.
     """
+    player_data = {}
+    player_1 = None
+    player_2 = None
+    rules = Rules()
 
-    def __init__(self):
-        pass
+    def __init__(self, round_id, player_1, player_2):
+        """
+        Not only inits the fields, but also determines the winner and
+        saves required data for later analysis.
+        :param round_id: The id of the current round.
+        :type round_id: int
+        :param player_1: The first player.
+        :type player_1: Player
+        :param player_2: The second player.
+        :type player_2: Player
+        """
+        self.id = round_id
+        self.player_1 = player_1
+        self.player_2 = player_2
+
+        self.set_player_data(self.player_1)
+        self.set_player_data(self.player_2)
+
+        result = self.rules.compare(
+            self.player_data[player_1.player_id]['move'],
+            self.player_data[player_2.player_id]['move'])
+
+        player_1.learn(self.player_data[player_2.player_id]['move'])
+        player_2.learn(self.player_data[player_1.player_id]['move'])
+
+        if result == -1:
+            self.winner = self.player_1
+        elif result == 0:
+            self.winner = None
+        else:
+            self.winner = self.player_2
+
+    def set_player_data(self, player):
+        """
+        Set the required player data.
+        :param player: A Player instance.
+        :type player: Player
+        """
+        self.player_data[player.player_id] = {
+            'move': player.play()
+        }
+        player.played_round(self)
+
+    def get_opponent(self, player):
+        """
+        Returns the opponent of a player.
+        :param player: A player instance.
+        :return: Player 1, if the given player is player 2, player 1 else.
+        """
+        return self.player_1 if player is self.player_2 else self.player_1
 
 
 class Player:
+    rounds_played = []
+
     """
     A player can play one move per round.
     """
+
+    def __init__(self, player_id):
+        self.player_id = player_id
 
     def learn(self, value):
         """
@@ -89,6 +146,9 @@ class Player:
         raise NotImplementedError('implement this method in '
                                   'an appropriate base class')
 
+    def played_round(self, round):
+        self.rounds_played.append(round)
+
 
 class StaticMovePlayer(Player):
     """
@@ -96,8 +156,8 @@ class StaticMovePlayer(Player):
     passed to the instance when created.
     """
 
-    def __init__(self, value=NAME_ROCK):
-        super().__init__()
+    def __init__(self, player_id, value=NAME_ROCK):
+        super().__init__(player_id)
         self.value = value
 
     def play(self):
@@ -110,7 +170,7 @@ class RandomMovePlayer(Player):
     """
 
     def play(self):
-        return random.choice(ALL_VALUES)
+        return random.choice(ALL_VALID_VALUES)
 
 
 class ImitatingPlayer(Player):
@@ -119,16 +179,16 @@ class ImitatingPlayer(Player):
     returning its opponent's last round's move.
     """
 
-    def __init__(self):
-        super().__init__()
-        self.value = random.choice(ALL_VALUES)
+    def __init__(self, player_id):
+        super().__init__(player_id)
+        self.value = random.choice(ALL_VALID_VALUES)
 
     def learn(self, value):
         """
         Sets the next value to play.
         :param value: The next value to play.
         """
-        assert value in ALL_VALUES
+        assert value in ALL_VALID_VALUES
         self.value = value
 
     def play(self):
@@ -139,7 +199,7 @@ class CyclingMovePlayer(Player):
     """
     Copy of all moves, as this Player subclass mutates the list.
     """
-    moves = ALL_VALUES.copy()
+    moves = ALL_VALID_VALUES.copy()
 
     def play(self):
         return self.next_move()
@@ -153,10 +213,14 @@ class CyclingMovePlayer(Player):
         return self.moves[0]
 
 
+class HumanPlayer(Player):
+    pass
+
+
 if __name__ == '__main__':
     print("let's play a game")
-    assert NAME_ROCK is StaticMovePlayer().play()
-    cycling_player = CyclingMovePlayer()
+    assert NAME_ROCK is StaticMovePlayer(1).play()
+    cycling_player = CyclingMovePlayer(2)
     print(cycling_player.play())
     print(cycling_player.play())
     print(cycling_player.play())
